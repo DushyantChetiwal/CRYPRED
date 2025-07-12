@@ -6,10 +6,14 @@ on:
     - cron: '* * * * *'
   workflow_dispatch: # Allow manual triggers
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'scripts/**'
       - '.github/workflows/crypto-data-fetcher.yml'
+
+permissions:
+  contents: write
+  actions: read
 
 jobs:
   fetch-crypto-data:
@@ -20,6 +24,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -41,18 +46,21 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPOSITORY: ${{ github.repository }}
     
-    - name: Commit and push data
+    - name: Configure Git
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.name "GitHub Action Bot"
+    
+    - name: Commit and push data
+      run: |
         git add data/
         
         # Check if there are changes to commit
         if git diff --cached --quiet; then
           echo "No changes to commit"
         else
-          git commit -m "Update crypto data - $(date '+%Y-%m-%d %H:%M:%S UTC')"
-          git push
+          git commit -m "📊 Update crypto data - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          git push origin master
         fi
     
     - name: Upload logs as artifact
