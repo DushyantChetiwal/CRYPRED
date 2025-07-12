@@ -55,14 +55,17 @@ def test_data_fetcher():
         if ticker_data and len(ticker_data) > 0:
             print(f"[SUCCESS] Data fetcher test passed ({len(ticker_data)} tickers fetched)")
             
-            # Test top coins identification
-            top_coins = fetcher.identify_top_coins(ticker_data, top_n=5)
-            if top_coins and len(top_coins) > 0:
-                print(f"[SUCCESS] Top coins identification test passed (found {len(top_coins)} top coins)")
-                print(f"   Top coin by volume: {top_coins[0].get('market', 'Unknown')}")
+            # Test target pairs functionality
+            target_pairs = fetcher.get_target_pairs()
+            target_coins = fetcher.get_pair_ticker_data(ticker_data, target_pairs)
+            if target_pairs and len(target_pairs) > 0:
+                print(f"[SUCCESS] Target pairs test passed ({len(target_pairs)} pairs configured)")
+                print(f"   Found data for {len(target_coins)} pairs")
+                if target_pairs:
+                    print(f"   First target pair: {target_pairs[0]}")
                 return True
             else:
-                print("[ERROR] Top coins identification failed")
+                print("[ERROR] Target pairs test failed")
                 return False
         else:
             print("[ERROR] Data fetcher test failed - no data received")

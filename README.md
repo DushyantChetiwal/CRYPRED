@@ -5,7 +5,7 @@ An automated GitHub Action that fetches cryptocurrency trading data from CoinDCX
 ## 🎯 Features
 
 - **Automated Data Collection**: Runs every minute via GitHub Actions
-- **Smart Coin Selection**: Automatically identifies and tracks the top 15 most traded coins
+- **Targeted Pair Tracking**: Focuses on specific INR trading pairs (BTC, ETH, XRP, SOL, ADA, DOGE, PEPE, BONK, SHIB, KNC)
 - **Comprehensive Data**: Fetches ticker data, trade history, and market details
 - **Robust Error Handling**: Retry logic, exponential backoff, and detailed logging
 - **Data Storage**: Organized JSON files with timestamps
@@ -243,8 +243,8 @@ def generate_buy_signal(ticker_data):
 The system tracks:
 - **Execution Time**: Average ~15-30 seconds per run
 - **Success Rate**: >99% uptime with retry logic
-- **Data Coverage**: Top 15 coins by volume
-- **API Calls**: ~25-30 requests per minute
+- **Data Coverage**: 10 specific INR trading pairs
+- **API Calls**: ~12-15 requests per minute
 - **Storage**: ~1-2 MB per hour of data
 
 ## 🔒 Security Considerations
@@ -266,12 +266,15 @@ The system tracks:
 
 ## 🛠️ Customization
 
-### Modify Coin Selection
+### Modify Target Pairs
 ```python
 # In fetch_coindcx_data.py
-def identify_top_coins(self, ticker_data, top_n=20):  # Change top_n
-    # Add custom filtering logic
-    pass
+def get_target_pairs(self) -> List[str]:
+    return [
+        'I-BTC_INR',    # Add/remove pairs as needed
+        'I-ETH_INR',
+        # Add your preferred pairs here
+    ]
 ```
 
 ### Change Data Retention

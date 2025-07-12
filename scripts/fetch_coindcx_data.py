@@ -76,25 +76,92 @@ class CoinDCXDataFetcher:
         logger.info(f"Fetching trade history for {pair}...")
         return self.make_request(url, params)
     
-    def identify_top_coins(self, ticker_data: List[Dict], top_n: int = 20) -> List[Dict]:
-        """Identify top N most traded coins by volume"""
+    def get_target_pairs(self) -> List[str]:
+        """Get the specific pairs we want to track"""
+        return [
+            'I-BTC_INR',    # Bitcoin to INR
+            'I-ETH_INR',    # Ethereum to INR  
+            'I-XRP_INR',    # Ripple to INR
+            'I-SOL_INR',    # Solana to INR
+            'I-ADA_INR',    # Cardano to INR
+            'I-DOGE_INR',   # Dogecoin to INR
+            'I-PEPE_INR',   # Pepe to INR
+            'I-BONK_INR',   # Bonk to INR
+            'I-SHIB_INR',   # Shiba Inu to INR
+            'I-KNC_INR'     # Kyber Network to INR
+        ]
+    
+    def get_pair_ticker_data(self, ticker_data: List[Dict], target_pairs: List[str]) -> List[Dict]:
+        """Get ticker data for specific pairs"""
         try:
-            # Convert to DataFrame for easier processing
-            df = pd.DataFrame(ticker_data)
+            # Create a mapping from pair to ticker data
+            pair_mapping = self.get_market_pair_mapping_reverse(ticker_data)
             
-            # Convert volume to numeric and sort
-            df['volume_numeric'] = pd.to_numeric(df['volume'], errors='coerce')
-            df = df.dropna(subset=['volume_numeric'])
+            target_ticker_data = []
+            for pair in target_pairs:
+                # Find the corresponding market symbol for this pair
+                market_symbol = None
+                for ticker in ticker_data:
+                    # Try to match based on market name patterns
+                    market = ticker.get('market', '')
+                    if pair == 'I-BTC_INR' and market in ['BTCINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-ETH_INR' and market in ['ETHINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-XRP_INR' and market in ['XRPINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-SOL_INR' and market in ['SOLINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-ADA_INR' and market in ['ADAINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-DOGE_INR' and market in ['DOGEINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-PEPE_INR' and market in ['PEPEINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-BONK_INR' and market in ['BONKINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-SHIB_INR' and market in ['SHIBINR']:
+                        market_symbol = market
+                        break
+                    elif pair == 'I-KNC_INR' and market in ['KNCINR']:
+                        market_symbol = market
+                        break
+                
+                if market_symbol:
+                    # Find the ticker data for this market
+                    for ticker in ticker_data:
+                        if ticker.get('market') == market_symbol:
+                            target_ticker_data.append(ticker)
+                            break
+                else:
+                    logger.warning(f"Could not find market data for pair: {pair}")
             
-            # Sort by volume in descending order
-            top_coins = df.nlargest(top_n, 'volume_numeric')
-            
-            logger.info(f"Identified top {len(top_coins)} coins by volume")
-            return top_coins.to_dict('records')
+            logger.info(f"Found ticker data for {len(target_ticker_data)} target pairs")
+            return target_ticker_data
             
         except Exception as e:
-            logger.error(f"Error identifying top coins: {e}")
+            logger.error(f"Error getting target pair data: {e}")
             return []
+    
+    def get_market_pair_mapping_reverse(self, ticker_data: List[Dict]) -> Dict[str, str]:
+        """Create mapping from market symbol to estimated pair format"""
+        mapping = {}
+        for ticker in ticker_data:
+            market = ticker.get('market', '')
+            if market.endswith('INR'):
+                # Convert BTCINR to I-BTC_INR format
+                base = market.replace('INR', '')
+                pair = f"I-{base}_INR"
+                mapping[market] = pair
+        return mapping
     
     def get_market_pair_mapping(self, market_details: List[Dict]) -> Dict[str, str]:
         """Create mapping from market symbol to pair format"""
@@ -177,46 +244,60 @@ class CoinDCXDataFetcher:
                 logger.error("Failed to fetch market details")
                 return
             
-            # Create pair mapping
-            pair_mapping = self.get_market_pair_mapping(market_details)
+            # Get target pairs we want to track
+            target_pairs = self.get_target_pairs()
             
-            # Identify top coins
-            top_coins = self.identify_top_coins(ticker_data, top_n=15)
+            # Get ticker data for our specific pairs
+            target_coins = self.get_pair_ticker_data(ticker_data, target_pairs)
             
-            # Save ticker data
+            # Save ticker data (all tickers for reference)
             self.save_ticker_data(ticker_data, timestamp)
             
-            # Fetch trade data for top coins
+            # Fetch trade data for target pairs
             trade_data_summary = {}
             successful_fetches = 0
             
-            for coin in top_coins:
-                market_symbol = coin.get('market', '')
-                pair = pair_mapping.get(market_symbol, market_symbol)
-                
-                if pair:
-                    trade_data = self.get_trade_history(pair, limit=50)
-                    if trade_data:
-                        self.save_trade_data(pair, trade_data, timestamp)
-                        trade_data_summary[pair] = {
-                            'trades_count': len(trade_data),
-                            'volume_24h': coin.get('volume', 0),
-                            'last_price': coin.get('last_price', 0),
-                            'change_24h': coin.get('change_24_hour', 0)
-                        }
-                        successful_fetches += 1
-                    else:
-                        logger.warning(f"No trade data available for {pair}")
+            for pair in target_pairs:
+                trade_data = self.get_trade_history(pair, limit=50)
+                if trade_data:
+                    self.save_trade_data(pair, trade_data, timestamp)
                     
-                    # Rate limiting - small delay between requests
-                    time.sleep(0.1)
+                    # Find corresponding ticker data
+                    ticker_info = None
+                    for coin in target_coins:
+                        market = coin.get('market', '')
+                        if (pair == 'I-BTC_INR' and market == 'BTCINR') or \
+                           (pair == 'I-ETH_INR' and market == 'ETHINR') or \
+                           (pair == 'I-XRP_INR' and market == 'XRPINR') or \
+                           (pair == 'I-SOL_INR' and market == 'SOLINR') or \
+                           (pair == 'I-ADA_INR' and market == 'ADAINR') or \
+                           (pair == 'I-DOGE_INR' and market == 'DOGEINR') or \
+                           (pair == 'I-PEPE_INR' and market == 'PEPEINR') or \
+                           (pair == 'I-BONK_INR' and market == 'BONKINR') or \
+                           (pair == 'I-SHIB_INR' and market == 'SHIBINR') or \
+                           (pair == 'I-KNC_INR' and market == 'KNCINR'):
+                            ticker_info = coin
+                            break
+                    
+                    trade_data_summary[pair] = {
+                        'trades_count': len(trade_data),
+                        'volume_24h': ticker_info.get('volume', 0) if ticker_info else 0,
+                        'last_price': ticker_info.get('last_price', 0) if ticker_info else 0,
+                        'change_24h': ticker_info.get('change_24_hour', 0) if ticker_info else 0
+                    }
+                    successful_fetches += 1
+                else:
+                    logger.warning(f"No trade data available for {pair}")
+                
+                # Rate limiting - small delay between requests
+                time.sleep(0.1)
             
             # Create summary
             summary = {
                 'timestamp': timestamp,
                 'execution_time_seconds': round(time.time() - start_time, 2),
                 'total_markets': len(ticker_data),
-                'top_coins_analyzed': len(top_coins),
+                'target_pairs_tracked': len(target_pairs),
                 'successful_fetches': successful_fetches,
                 'trade_data': trade_data_summary
             }
@@ -225,7 +306,7 @@ class CoinDCXDataFetcher:
             self.save_logs(timestamp)
             
             logger.info(f"Data fetch completed successfully in {summary['execution_time_seconds']} seconds")
-            logger.info(f"Processed {successful_fetches} pairs out of {len(top_coins)} top coins")
+            logger.info(f"Processed {successful_fetches} pairs out of {len(target_pairs)} target pairs")
             
         except Exception as e:
             logger.error(f"Error in main execution: {e}")
