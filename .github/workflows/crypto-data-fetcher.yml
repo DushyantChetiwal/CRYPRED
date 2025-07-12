@@ -60,6 +60,7 @@ jobs:
           echo "No changes to commit"
         else
           git commit -m "📊 Update crypto data - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          git pull --rebase origin master
           git push origin master
         fi
     
