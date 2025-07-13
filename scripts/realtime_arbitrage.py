@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Real-time Crypto Arbitrage System
-Monitors price differences between INR and USD markets for arbitrage opportunities
+Monitors price differences between INR and USDT markets for arbitrage opportunities
 """
 
 import requests
@@ -37,7 +37,7 @@ class ArbitrageOpportunity:
     symbol: str
     inr_price: float
     usd_price: float
-    inr_price_normalized: float  # INR price converted to USD
+    inr_price_normalized: float  # INR price converted to USDT
     spread_percent: float
     signal: str  # 'BUY' or 'SELL'
     timestamp: datetime
@@ -56,7 +56,7 @@ class RealTimeArbitrage:
         # Exchange URLs
         self.coindcx_url = "https://api.coindcx.com/exchange/ticker"
         self.binance_url = "https://api.binance.com/api/v3/ticker/24hr"
-        self.usd_inr_url = "https://api.exchangerate-api.com/v4/latest/USD"
+        self.usdt_inr_url = "https://api.coindcx.com/exchange/ticker"  # For USDTINR pair
         
         # Target trading pairs
         self.target_pairs = {
@@ -70,7 +70,7 @@ class RealTimeArbitrage:
         
         # Current prices and exchange rate
         self.current_prices = {}
-        self.usd_inr_rate = 83.0  # Default fallback
+        self.usdt_inr_rate = 83.0  # Default fallback (will be updated from USDTINR market)
         self.last_rate_update = None
         
         # Arbitrage settings
@@ -97,22 +97,25 @@ class RealTimeArbitrage:
                     logger.error(f"Failed to fetch from {url} after {max_retries} attempts")
                     return None
     
-    def get_usd_inr_rate(self) -> bool:
-        """Fetch current USD/INR exchange rate"""
+    def get_usdt_inr_rate(self) -> bool:
+        """Fetch current USDT/INR exchange rate from crypto exchange"""
         try:
             # Update rate only if it's been more than 5 minutes
             if (self.last_rate_update is None or 
                 (datetime.now() - self.last_rate_update).seconds > 300):
                 
-                data = self.fetch_with_retry(self.usd_inr_url)
-                if data and 'rates' in data and 'INR' in data['rates']:
-                    self.usd_inr_rate = float(data['rates']['INR'])
-                    self.last_rate_update = datetime.now()
-                    logger.info(f"Updated USD/INR rate: {self.usd_inr_rate:.2f}")
-                    return True
+                data = self.fetch_with_retry(self.usdt_inr_url)
+                if data:
+                    # Look for USDTINR trading pair in CoinDCX ticker data
+                    for ticker in data:
+                        if ticker.get('market') == 'USDTINR':
+                            self.usdt_inr_rate = float(ticker.get('last_price', self.usdt_inr_rate))
+                            self.last_rate_update = datetime.now()
+                            logger.info(f"Updated USDT/INR rate: {self.usdt_inr_rate:.2f}")
+                            return True
             return True
         except Exception as e:
-            logger.error(f"Error fetching USD/INR rate: {e}")
+            logger.error(f"Error fetching USDT/INR rate: {e}")
             return False
     
     def get_coindcx_prices(self) -> Dict[str, Price]:
@@ -199,22 +202,22 @@ class RealTimeArbitrage:
             return coindcx_prices, binance_prices
     
     def calculate_arbitrage_opportunities(self, inr_prices: Dict[str, Price], 
-                                        usd_prices: Dict[str, Price]) -> List[ArbitrageOpportunity]:
-        """Calculate arbitrage opportunities between INR and USD prices"""
+                                        usdt_prices: Dict[str, Price]) -> List[ArbitrageOpportunity]:
+        """Calculate arbitrage opportunities between INR and USDT prices"""
         opportunities = []
         
         for symbol in self.target_pairs.keys():
-            if symbol not in inr_prices or symbol not in usd_prices:
+            if symbol not in inr_prices or symbol not in usdt_prices:
                 continue
                 
             inr_price = inr_prices[symbol]
-            usd_price = usd_prices[symbol]
+            usdt_price = usdt_prices[symbol]
             
-            # Convert INR price to USD
-            inr_price_usd = inr_price.price / self.usd_inr_rate
+            # Convert INR price to USDT using crypto exchange rate
+            inr_price_usdt = inr_price.price / self.usdt_inr_rate
             
             # Calculate spread
-            spread = (inr_price_usd - usd_price.price) / usd_price.price * 100
+            spread = (inr_price_usdt - usdt_price.price) / usdt_price.price * 100
             
             # Skip if spread is too small or too large (likely error)
             if abs(spread) < self.min_spread_percent or abs(spread) > self.max_spread_percent:
@@ -236,8 +239,8 @@ class RealTimeArbitrage:
             opportunity = ArbitrageOpportunity(
                 symbol=symbol,
                 inr_price=inr_price.price,
-                usd_price=usd_price.price,
-                inr_price_normalized=inr_price_usd,
+                usd_price=usdt_price.price,
+                inr_price_normalized=inr_price_usdt,
                 spread_percent=spread,
                 signal=signal,
                 timestamp=datetime.now(timezone.utc),
@@ -262,8 +265,8 @@ class RealTimeArbitrage:
             confidence_stars = "⭐" * int(opp.confidence * 5)
             
             print(f"{signal_emoji} {opp.symbol}")
-            print(f"  INR Price: ₹{opp.inr_price:,.2f} (~${opp.inr_price_normalized:.2f})")
-            print(f"  USD Price: ${opp.usd_price:.2f}")
+            print(f"  INR Price: ₹{opp.inr_price:,.2f} (~{opp.inr_price_normalized:.2f} USDT)")
+            print(f"  USDT Price: {opp.usd_price:.2f} USDT")
             print(f"  Spread: {opp.spread_percent:+.2f}% {confidence_stars}")
             print(f"  Strategy: {opp.signal} in INR market")
             print()
@@ -276,14 +279,14 @@ class RealTimeArbitrage:
         
         while True:
             try:
-                # Update USD/INR rate
-                self.get_usd_inr_rate()
+                # Update USDT/INR rate
+                self.get_usdt_inr_rate()
                 
                 # Fetch prices from both exchanges
-                inr_prices, usd_prices = self.fetch_all_prices()
+                inr_prices, usdt_prices = self.fetch_all_prices()
                 
                 # Calculate arbitrage opportunities
-                opportunities = self.calculate_arbitrage_opportunities(inr_prices, usd_prices)
+                opportunities = self.calculate_arbitrage_opportunities(inr_prices, usdt_prices)
                 
                 # Display opportunities
                 self.print_opportunities(opportunities)

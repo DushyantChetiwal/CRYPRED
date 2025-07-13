@@ -26,14 +26,14 @@ class ArbitrageGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("CRYPRED - Real-Time Arbitrage Monitor")
+        self.root.title("CRYPRED - Real-Time INR/USDT Arbitrage Monitor")
         self.root.geometry("1400x900")
         
         # Data storage
         self.data_history = defaultdict(lambda: {
             'timestamps': deque(maxlen=1000),
             'inr_prices': deque(maxlen=1000),
-            'usd_prices': deque(maxlen=1000),
+            'usdt_prices': deque(maxlen=1000),
             'spreads': deque(maxlen=1000),
             'signals': deque(maxlen=1000)
         })
@@ -157,7 +157,7 @@ class ArbitrageGUI:
         self.inr_price_label = ttk.Label(price_frame, text="INR Price: --", font=("Arial", 12, "bold"))
         self.inr_price_label.pack(anchor=tk.W)
         
-        self.usd_price_label = ttk.Label(price_frame, text="USD Price: --", font=("Arial", 12, "bold"))
+        self.usd_price_label = ttk.Label(price_frame, text="USDT Price: --", font=("Arial", 12, "bold"))
         self.usd_price_label.pack(anchor=tk.W)
         
         # Spread info
@@ -189,9 +189,9 @@ class ArbitrageGUI:
         # Price chart
         self.price_ax.clear()
         self.price_ax.set_title(f"{self.current_pair} Price Comparison", fontsize=14, fontweight='bold')
-        self.price_ax.set_ylabel("Price (USD)", fontsize=12)
+        self.price_ax.set_ylabel("Price (USDT)", fontsize=12)
         self.price_ax.grid(True, alpha=0.3)
-        self.price_ax.legend(['INR (Normalized)', 'USD'], loc='upper left')
+        self.price_ax.legend(['INR (Normalized)', 'USDT'], loc='upper left')
         
         # Spread chart
         self.spread_ax.clear()
@@ -249,26 +249,26 @@ class ArbitrageGUI:
         """Background thread for collecting arbitrage data"""
         while self.is_running:
             try:
-                # Update USD/INR rate
-                self.arbitrage.get_usd_inr_rate()
+                # Update USDT/INR rate
+                self.arbitrage.get_usdt_inr_rate()
                 
                 # Fetch prices from both exchanges
-                inr_prices, usd_prices = self.arbitrage.fetch_all_prices()
+                inr_prices, usdt_prices = self.arbitrage.fetch_all_prices()
                 
                 # Calculate arbitrage opportunities
-                opportunities = self.arbitrage.calculate_arbitrage_opportunities(inr_prices, usd_prices)
+                opportunities = self.arbitrage.calculate_arbitrage_opportunities(inr_prices, usdt_prices)
                 
                 # Store data for each pair
                 current_time = datetime.now()
                 
                 for symbol in self.arbitrage.target_pairs.keys():
-                    if symbol in inr_prices and symbol in usd_prices:
+                    if symbol in inr_prices and symbol in usdt_prices:
                         inr_price = inr_prices[symbol]
-                        usd_price = usd_prices[symbol]
-                        inr_normalized = inr_price.price / self.arbitrage.usd_inr_rate
+                        usdt_price = usdt_prices[symbol]
+                        inr_normalized = inr_price.price / self.arbitrage.usdt_inr_rate
                         
                         # Calculate spread
-                        spread = (inr_normalized - usd_price.price) / usd_price.price * 100
+                        spread = (inr_normalized - usdt_price.price) / usdt_price.price * 100
                         
                         # Determine signal
                         signal = "SELL" if spread > 0.5 else ("BUY" if spread < -0.5 else "HOLD")
@@ -276,7 +276,7 @@ class ArbitrageGUI:
                         # Store in history
                         self.data_history[symbol]['timestamps'].append(current_time)
                         self.data_history[symbol]['inr_prices'].append(inr_normalized)
-                        self.data_history[symbol]['usd_prices'].append(usd_price.price)
+                        self.data_history[symbol]['usdt_prices'].append(usdt_price.price)
                         self.data_history[symbol]['spreads'].append(spread)
                         self.data_history[symbol]['signals'].append(signal)
                 
@@ -316,7 +316,7 @@ class ArbitrageGUI:
         # Extract data for view window
         timestamps = list(data['timestamps'])[start_idx:end_idx]
         inr_prices = list(data['inr_prices'])[start_idx:end_idx]
-        usd_prices = list(data['usd_prices'])[start_idx:end_idx]
+        usdt_prices = list(data['usdt_prices'])[start_idx:end_idx]
         spreads = list(data['spreads'])[start_idx:end_idx]
         signals = list(data['signals'])[start_idx:end_idx]
         
@@ -326,11 +326,11 @@ class ArbitrageGUI:
         # Update price chart
         self.price_ax.clear()
         self.price_ax.set_title(f"{self.current_pair} Price Comparison", fontsize=14, fontweight='bold')
-        self.price_ax.set_ylabel("Price (USD)", fontsize=12)
+        self.price_ax.set_ylabel("Price (USDT)", fontsize=12)
         
         # Plot price lines
         self.price_ax.plot(timestamps, inr_prices, 'b-', linewidth=2, label='INR (Normalized)', alpha=0.8)
-        self.price_ax.plot(timestamps, usd_prices, 'r-', linewidth=2, label='USD (Binance)', alpha=0.8)
+        self.price_ax.plot(timestamps, usdt_prices, 'r-', linewidth=2, label='USDT (Binance)', alpha=0.8)
         
         self.price_ax.grid(True, alpha=0.3)
         self.price_ax.legend(loc='upper left')
@@ -411,13 +411,13 @@ class ArbitrageGUI:
             if len(data['timestamps']) > 0:
                 # Get latest data
                 latest_inr = data['inr_prices'][-1]
-                latest_usd = data['usd_prices'][-1]
+                latest_usdt = data['usdt_prices'][-1]
                 latest_spread = data['spreads'][-1]
                 latest_signal = data['signals'][-1]
                 
                 # Update labels
-                self.inr_price_label.config(text=f"INR Price: ${latest_inr:,.2f}")
-                self.usd_price_label.config(text=f"USD Price: ${latest_usd:,.2f}")
+                self.inr_price_label.config(text=f"INR Price: {latest_inr:,.2f} USDT")
+                self.usd_price_label.config(text=f"USDT Price: {latest_usdt:,.2f} USDT")
                 
                 spread_color = "green" if latest_spread < -0.5 else "red" if latest_spread > 0.5 else "black"
                 self.spread_label.config(text=f"Spread: {latest_spread:+.2f}%", foreground=spread_color)
