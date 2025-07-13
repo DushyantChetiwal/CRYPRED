@@ -26,7 +26,7 @@ class ArbitrageGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("CRYPRED - Real-Time INR/USDT Arbitrage Monitor")
+        self.root.title("CRYPRED - Live INR/USDT Arbitrage Monitor (1s Updates)")
         self.root.geometry("1400x900")
         
         # Data storage
@@ -225,7 +225,7 @@ class ArbitrageGUI:
             
             # Start animation for real-time updates
             self.animation = FuncAnimation(self.figure, self.update_charts, 
-                                         interval=1000, blit=False, cache_frame_data=False)
+                                         interval=500, blit=False, cache_frame_data=False)
             
             # Start GUI update loop
             self.update_gui_info()
@@ -284,7 +284,7 @@ class ArbitrageGUI:
                 self.data_queue.put(('opportunities', opportunities))
                 
                 # Wait before next collection
-                time.sleep(10)  # 10 second intervals
+                time.sleep(1)  # 1 second intervals for smooth real-time updates
                 
             except Exception as e:
                 print(f"Error in data collection: {e}")
@@ -396,7 +396,7 @@ class ArbitrageGUI:
             
         # Schedule next update
         if self.is_running:
-            self.root.after(1000, self.update_gui_info)
+            self.root.after(500, self.update_gui_info)
             
     def process_opportunities(self, opportunities):
         """Process new arbitrage opportunities"""

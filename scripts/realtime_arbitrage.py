@@ -2,6 +2,7 @@
 """
 Real-time Crypto Arbitrage System
 Monitors price differences between INR and USDT markets for arbitrage opportunities
+Updates every 1 second for smooth real-time tracking of volatile crypto markets
 """
 
 import requests
@@ -80,7 +81,7 @@ class RealTimeArbitrage:
         # Rate limiting
         self.last_coindcx_call = 0
         self.last_binance_call = 0
-        self.call_interval = 1.0  # 1 second between calls
+        self.call_interval = 0.5  # 0.5 seconds between calls for faster updates
         
     def fetch_with_retry(self, url: str, params: Optional[Dict] = None, max_retries: int = 3) -> Optional[Dict]:
         """Fetch data with retry logic"""
@@ -100,9 +101,9 @@ class RealTimeArbitrage:
     def get_usdt_inr_rate(self) -> bool:
         """Fetch current USDT/INR exchange rate from crypto exchange"""
         try:
-            # Update rate only if it's been more than 5 minutes
+            # Update rate every time (since USDT/INR is volatile crypto pair)
             if (self.last_rate_update is None or 
-                (datetime.now() - self.last_rate_update).seconds > 300):
+                (datetime.now() - self.last_rate_update).seconds > 1):
                 
                 data = self.fetch_with_retry(self.usdt_inr_url)
                 if data:
@@ -292,7 +293,7 @@ class RealTimeArbitrage:
                 self.print_opportunities(opportunities)
                 
                 # Wait before next check
-                time.sleep(30)  # Check every 30 seconds
+                time.sleep(1)  # Check every 1 second for smooth real-time updates
                 
             except KeyboardInterrupt:
                 logger.info("Stopping arbitrage monitoring...")
