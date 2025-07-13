@@ -1,0 +1,69 @@
+{
+  "timestamp": "20250712_235445",
+  "execution_time_seconds": 3.14,
+  "total_markets": 1077,
+  "target_pairs_tracked": 10,
+  "successful_fetches": 10,
+  "trade_data": {
+    "I-BTC_INR": {
+      "trades_count": 50,
+      "volume_24h": "41714930.99702526",
+      "last_price": "10300000.0",
+      "change_24h": "0.337"
+    },
+    "I-ETH_INR": {
+      "trades_count": 50,
+      "volume_24h": "24667745.45977905",
+      "last_price": "255038.0500000000",
+      "change_24h": "-2.205"
+    },
+    "I-XRP_INR": {
+      "trades_count": 50,
+      "volume_24h": "60164021.07342575",
+      "last_price": "241.0000000000",
+      "change_24h": "-1.712"
+    },
+    "I-SOL_INR": {
+      "trades_count": 50,
+      "volume_24h": "24442400.55097935",
+      "last_price": "14118.0",
+      "change_24h": "-1.487"
+    },
+    "I-ADA_INR": {
+      "trades_count": 50,
+      "volume_24h": "9593479.287050508",
+      "last_price": "62.0000000000",
+      "change_24h": "-3.786"
+    },
+    "I-DOGE_INR": {
+      "trades_count": 50,
+      "volume_24h": "14660932.869106028",
+      "last_price": "17.0823000000",
+      "change_24h": "-5.296"
+    },
+    "I-PEPE_INR": {
+      "trades_count": 50,
+      "volume_24h": "12762333.476784945",
+      "last_price": "0.0010760000",
+      "change_24h": "-4.099"
+    },
+    "I-BONK_INR": {
+      "trades_count": 50,
+      "volume_24h": "9002651.938102713",
+      "last_price": "0.0022314000",
+      "change_24h": "9.489"
+    },
+    "I-SHIB_INR": {
+      "trades_count": 50,
+      "volume_24h": "7997793.083571765",
+      "last_price": "0.0011450000",
+      "change_24h": "-5.371"
+    },
+    "I-KNC_INR": {
+      "trades_count": 50,
+      "volume_24h": "26053019.485918097",
+      "last_price": "54.2400000000",
+      "change_24h": "92.136"
+    }
+  }
+}

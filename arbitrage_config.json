@@ -1,0 +1,58 @@
+{
+  "arbitrage_settings": {
+    "min_spread_percent": 0.5,
+    "max_spread_percent": 10.0,
+    "check_interval_seconds": 30,
+    "exchange_rate_update_minutes": 5
+  },
+  "exchanges": {
+    "coindcx": {
+      "url": "https://api.coindcx.com/exchange/ticker",
+      "rate_limit_seconds": 1.0
+    },
+    "binance": {
+      "url": "https://api.binance.com/api/v3/ticker/24hr",
+      "rate_limit_seconds": 1.0
+    }
+  },
+  "exchange_rate": {
+    "url": "https://api.exchangerate-api.com/v4/latest/USD",
+    "fallback_rate": 83.0
+  },
+  "trading_pairs": {
+    "BTC": {
+      "coindcx": "BTCINR",
+      "binance": "BTCUSDT"
+    },
+    "ETH": {
+      "coindcx": "ETHINR",
+      "binance": "ETHUSDT"
+    },
+    "XRP": {
+      "coindcx": "XRPINR",
+      "binance": "XRPUSDT"
+    },
+    "SOL": {
+      "coindcx": "SOLINR",
+      "binance": "SOLUSDT"
+    },
+    "ADA": {
+      "coindcx": "ADAINR",
+      "binance": "ADAUSDT"
+    },
+    "DOGE": {
+      "coindcx": "DOGEINR",
+      "binance": "DOGEUSDT"
+    }
+  },
+  "notifications": {
+    "enabled": true,
+    "min_spread_for_alert": 2.0,
+    "sound_alerts": false
+  },
+  "logging": {
+    "level": "INFO",
+    "save_opportunities": true,
+    "save_all_prices": false
+  }
+} 
