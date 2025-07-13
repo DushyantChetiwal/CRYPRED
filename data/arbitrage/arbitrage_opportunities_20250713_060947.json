@@ -1,0 +1,65 @@
+{
+  "usd_inr_rate": 85.87,
+  "opportunities": [
+    {
+      "symbol": "BTC",
+      "inr_price": 10299570.48,
+      "usd_price": 117335.29,
+      "inr_price_normalized": 119943.75777337835,
+      "spread_percent": 2.223088870687038,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.846258+00:00",
+      "confidence": 0.7223088870687038
+    },
+    {
+      "symbol": "ETH",
+      "inr_price": 255563.88,
+      "usd_price": 2944.06,
+      "inr_price_normalized": 2976.1718877372773,
+      "spread_percent": 1.090734826643389,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.847248+00:00",
+      "confidence": 0.6090734826643389
+    },
+    {
+      "symbol": "XRP",
+      "inr_price": 242.34,
+      "usd_price": 2.7373,
+      "inr_price_normalized": 2.822173052288343,
+      "spread_percent": 3.1006120004509174,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.847248+00:00",
+      "confidence": 0.8100612000450917
+    },
+    {
+      "symbol": "SOL",
+      "inr_price": 14080.68,
+      "usd_price": 161.18,
+      "inr_price_normalized": 163.97670897868872,
+      "spread_percent": 1.7351464069293416,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.847248+00:00",
+      "confidence": 0.6735146406929342
+    },
+    {
+      "symbol": "ADA",
+      "inr_price": 62.31,
+      "usd_price": 0.7092,
+      "inr_price_normalized": 0.7256317689530686,
+      "spread_percent": 2.316944296822973,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.847248+00:00",
+      "confidence": 0.7316944296822974
+    },
+    {
+      "symbol": "DOGE",
+      "inr_price": 17.1681,
+      "usd_price": 0.19735,
+      "inr_price_normalized": 0.19993129148713168,
+      "spread_percent": 1.3079764312803048,
+      "signal": "SELL",
+      "timestamp": "2025-07-13T00:39:47.847248+00:00",
+      "confidence": 0.6307976431280304
+    }
+  ]
+}
